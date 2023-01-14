@@ -1,0 +1,17 @@
+Map<String, String> viewScheduleLocales_EN = {
+  'hd_Welcome': 'Welcome, @firstName !',
+  'lbl_TotalEarning': 'Total earnings',
+  'lbl_AmountToBePaid': 'Amount to be paid',
+  'hd_LessonToReview': 'Lessons you would like to review?',
+  'hd_LessonsUpcoming': 'Your upcoming schedules',
+  'lbl_Individuals': 'Individuals',
+  'lbl_Group': 'Group',
+  'lbl_RegularGroup': 'Regular group',
+  'lbl_Level': 'Level',
+  'lbl_HoursBooked': '@hours hour(s) booked',
+  'lbl_PeopleBooked': '@people student(s)',
+  'lbl_EurosEstimated': '@euros estimated',
+  'lbl_PeopleAttending': '@people student(s) attending',
+  'lbl_PeopleAllowed': '@people student(s) allowed',
+  'lbl_PeopleInWaiting': '@people student(s) in waiting list',
+};

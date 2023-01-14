@@ -1,0 +1,6 @@
+Students:
+    - fetching schedules of teachers need filters
+        - date
+        - time
+        - canBeSeenBy
+        - level
