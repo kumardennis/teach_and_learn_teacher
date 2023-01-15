@@ -9,7 +9,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:teach_and_learn_teacher/feature_Auth/getx_controllers/user_controller.dart';
 import 'package:teach_and_learn_teacher/feature_ViewSchedules/models/lesson_model.dart';
 import 'package:teach_and_learn_teacher/feature_ViewSchedules/models/schedule_by_date_model.dart';
+import 'package:teach_and_learn_teacher/feature_ViewSchedules/models/schedule_details_model.dart';
 import 'package:teach_and_learn_teacher/feature_ViewSchedules/widgets/schedule_card.dart';
+import 'package:teach_and_learn_teacher/feature_ViewSchedules/widgets/schedule_card_header.dart';
 import 'package:teach_and_learn_teacher/feature_ViewSchedules/widgets/schedule_date_card.dart';
 
 class SchedulesByDatePage extends HookWidget {
@@ -105,19 +107,243 @@ class SchedulesByDatePage extends HookWidget {
       return sum;
     }
 
+    Future<void> showBottomSheet(String scheduleId) async {
+      try {
+        final results = await Supabase.instance.client.functions
+            .invoke('proxy/get-teacher-schedule-details', headers: {
+          'Authorization': 'Bearer ${userController.user.value.accessToken}'
+        }, body: {
+          "scheduleId": scheduleId
+        });
+
+        final data = (results.data);
+
+        if (results.data['isRequestSuccessful']) {
+          List<ScheduleByDateModel> schedulesList = (data['data'] as List)
+              .map((e) => ScheduleByDateModel.fromJson(e))
+              .toList();
+
+          ScheduleByDateModel scheduleDetails = schedulesList[0];
+
+          showModalBottomSheet(
+              context: context,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              builder: (BuildContext context) {
+                return SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Column(
+                      children: [
+                        ScheduleCardHeader(schedule: scheduleDetails),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10),
+                          child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Row(
+                                    children: [
+                                      FaIcon(
+                                        FontAwesomeIcons.personRunning,
+                                        color:
+                                            Theme.of(context).colorScheme.blue,
+                                        size: 24,
+                                      ),
+                                      const SizedBox(
+                                        width: 15,
+                                      ),
+                                      Text(
+                                          'hd_Attendees'.trParams({
+                                            'people':
+                                                getNumberOfPeopleAttending(
+                                                        scheduleDetails.Lessons)
+                                                    .toString()
+                                          }),
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleLarge
+                                              ?.copyWith(
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .gunmetal,
+                                                  fontWeight: FontWeight.bold))
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      FaIcon(
+                                        FontAwesomeIcons.personCircleMinus,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .yellow,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(
+                                        width: 10,
+                                      ),
+                                      Text(
+                                          'lbl_SpotsVacant'.trParams({
+                                            'spots': (scheduleDetails
+                                                        .maxOccupancy -
+                                                    getNumberOfPeopleAttending(
+                                                        scheduleDetails
+                                                            .Lessons))
+                                                .toString()
+                                          }),
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleSmall
+                                              ?.copyWith(
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .gunmetal,
+                                                  fontWeight: FontWeight.bold))
+                                    ],
+                                  )
+                                ],
+                              ),
+                              // ListView(),
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 20),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  FaIcon(
+                                    FontAwesomeIcons.userClock,
+                                    color: Theme.of(context).colorScheme.yellow,
+                                    size: 22,
+                                  ),
+                                  const SizedBox(
+                                    width: 10,
+                                  ),
+                                  Text(
+                                      'hd_WaitingList'.trParams({
+                                        'people':
+                                            getNumberOfPeopleInWaitingList(
+                                                    scheduleDetails.Lessons)
+                                                .toString()
+                                      }),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleLarge
+                                          ?.copyWith(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .gunmetal,
+                                              fontWeight: FontWeight.bold))
+                                ],
+                              ),
+                              Column(
+                                children: scheduleDetails.Lessons.map(
+                                    (lesson) => Padding(
+                                          padding:
+                                              const EdgeInsets.only(top: 10),
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .yellow,
+                                                borderRadius:
+                                                    const BorderRadius.all(
+                                                        Radius.circular(10))),
+                                            width: MediaQuery.of(context)
+                                                .size
+                                                .width,
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Column(
+                                                children: [
+                                                  Row(
+                                                    children: [
+                                                      Row(
+                                                        children: [
+                                                          CircleAvatar(
+                                                            radius: 30.0,
+                                                            backgroundImage:
+                                                                NetworkImage(lesson
+                                                                    .Students!
+                                                                    .profileImage!),
+                                                            backgroundColor:
+                                                                Theme.of(
+                                                                        context)
+                                                                    .colorScheme
+                                                                    .blue,
+                                                          ),
+                                                          const SizedBox(
+                                                            width: 10,
+                                                          ),
+                                                          Text(
+                                                            '${lesson.Students!.firstName} ${lesson.Students!.lastName}',
+                                                            style: Theme.of(
+                                                                    context)
+                                                                .textTheme
+                                                                .bodyMedium
+                                                                ?.copyWith(
+                                                                    color: Theme.of(
+                                                                            context)
+                                                                        .colorScheme
+                                                                        .gunmetal,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold),
+                                                          )
+                                                        ],
+                                                      )
+                                                    ],
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        )).toList(),
+                              )
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                );
+              });
+        } else {
+          Get.snackbar('Oops..', results.data['error']);
+        }
+      } catch (error) {
+        print(error);
+      }
+    }
+
     return Column(children: [
       ScheduleDateCard(context, date),
       SingleChildScrollView(
         child: Column(
           children: schedules.value
-              .map((schedule) => ScheduleCard(
-                    schedule: schedule,
-                    getEstimatedMoney: getEstimatedMoney,
-                    getNumberOfBookedHours: getNumberOfBookedHours,
-                    getNumberOfBookedPeople: getNumberOfBookedPeople,
-                    getNumberOfPeopleAttending: getNumberOfPeopleAttending,
-                    getNumberOfPeopleInWaitingList:
-                        getNumberOfPeopleInWaitingList,
+              .map((schedule) => GestureDetector(
+                    onTap: () {
+                      showBottomSheet(schedule.id);
+                    },
+                    child: ScheduleCard(
+                      schedule: schedule,
+                      getEstimatedMoney: getEstimatedMoney,
+                      getNumberOfBookedHours: getNumberOfBookedHours,
+                      getNumberOfBookedPeople: getNumberOfBookedPeople,
+                      getNumberOfPeopleAttending: getNumberOfPeopleAttending,
+                      getNumberOfPeopleInWaitingList:
+                          getNumberOfPeopleInWaitingList,
+                    ),
                   ))
               .toList(),
         ),

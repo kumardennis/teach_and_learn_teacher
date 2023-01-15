@@ -14,6 +14,7 @@ import {
 } from '../_shared/confirmedRequiredParams.ts';
 import { corsHeaders } from '../_shared/cors.ts';
 import { createSupabase } from '../_shared/supabaseClient.ts';
+import { handler } from './handler.ts';
 
 console.log('Hello from Create user teacher Functions!');
 
@@ -29,77 +30,4 @@ interface CreateUserStudentResponseModel {
 		| null;
 }
 
-serve(async (req: Request) => {
-	const supabase = createSupabase(req);
-
-	try {
-		const { email, password, phone, firstName, lastName } = await req
-			.json();
-
-		if (
-			!confirmedRequiredParams([
-				email,
-				password,
-				phone,
-				firstName,
-				lastName,
-			])
-		) {
-			return new Response(JSON.stringify(errorResponseData), {
-				headers: { 'Content-Type': 'application/json' },
-			});
-		}
-
-		const { data, error } = await supabase.auth.admin.createUser({
-			email,
-			password,
-			phone,
-		});
-
-		if (error !== null) {
-			const responseData: CreateUserStudentResponseModel = {
-				isRequestSuccessful: false,
-				data: data,
-				error: error,
-			};
-
-			return new Response(JSON.stringify(responseData), {
-				headers: { 'Content-Type': 'application/json' },
-			});
-		}
-
-		const createdStudentRecord = await supabase
-			.from('Students')
-			.insert({
-				firstName,
-				lastName,
-				userId: data.user.id,
-			})
-			.select();
-
-		const createdStudentRecordData = createdStudentRecord.data;
-
-		const responseData: CreateUserStudentResponseModel = {
-			isRequestSuccessful: true,
-			data: { createdStudentUserData: data, createdStudentRecordData },
-			error: {
-				createdStudentUserError: error,
-				createdStudentRecordError: createdStudentRecord.error,
-			},
-		};
-
-		return new Response(JSON.stringify(responseData), {
-			headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-		});
-	} catch (err) {
-		const responseData: CreateUserStudentResponseModel = {
-			isRequestSuccessful: false,
-			data: null,
-			error: err,
-		};
-
-		return new Response(JSON.stringify(responseData), {
-			headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-		});
-	}
-});
+serve(handler);

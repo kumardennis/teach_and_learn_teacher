@@ -33,6 +33,21 @@ const handlers = {
 		'../create-student-group-lesson/handler.ts'
 	)
 		.then((it) => it.handler),
+
+	'get-teacher-schedule-details': await import(
+		'../get-teacher-schedule-details/handler.ts'
+	)
+		.then((it) => it.handler),
+
+	'create-user-student': await import(
+		'../create-user-student/handler.ts'
+	)
+		.then((it) => it.handler),
+
+	'update-user-confirm-email': await import(
+		'../update-user-confirm-email/handler.ts'
+	)
+		.then((it) => it.handler),
 } as Record<string, Handler>;
 
 function localdevHandler(req: Request, connInfo: ConnInfo) {

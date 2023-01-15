@@ -14,4 +14,7 @@ Map<String, String> viewScheduleLocales_EN = {
   'lbl_PeopleAttending': '@people student(s) attending',
   'lbl_PeopleAllowed': '@people student(s) allowed',
   'lbl_PeopleInWaiting': '@people student(s) in waiting list',
+  'lbl_SpotsVacant': '@spots spots vacant',
+  'hd_Attendees': '@people Attendees',
+  'hd_WaitingList': '@people Waiting'
 };
