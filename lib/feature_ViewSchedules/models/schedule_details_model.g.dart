@@ -28,6 +28,7 @@ ScheduleDetailsModel _$ScheduleDetailsModelFromJson(
       json['levelUpto'] as int,
       json['autoAddWaitingStudents'] as bool?,
       json['scheduleTimeEnd'] as String,
+      SubcategoryModel.fromJson(json['Subcategories'] as Map<String, dynamic>),
       (json['LessonScheduleTimes'] as List<dynamic>)
           .map((e) =>
               LessonScheduleTimesModel.fromJson(e as Map<String, dynamic>))
@@ -59,6 +60,7 @@ Map<String, dynamic> _$ScheduleDetailsModelToJson(
       'levelUpto': instance.levelUpto,
       'autoAddWaitingStudents': instance.autoAddWaitingStudents,
       'scheduleTimeEnd': instance.scheduleTimeEnd,
+      'Subcategories': instance.Subcategories.toJson(),
       'LessonScheduleTimes':
           instance.LessonScheduleTimes.map((e) => e.toJson()).toList(),
       'Lessons': instance.Lessons.map((e) => e.toJson()).toList(),

@@ -5,6 +5,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:get/get.dart';
+import 'package:teach_and_learn_teacher/feature_AddEditSchedule/screens/add_schedule.dart';
 import 'package:teach_and_learn_teacher/feature_ViewSchedules/screens/home_screen.dart';
 import 'package:teach_and_learn_teacher/feature_ViewSchedules/screens/previous_schedules.dart';
 import 'package:teach_and_learn_teacher/feature_ViewSchedules/screens/upcoming_schedules.dart';
@@ -44,7 +45,8 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/sign-in', page: () => SignIn()),
         GetPage(name: '/home-screen', page: () => HomeScreen()),
         GetPage(name: '/upcoming-schedules', page: () => UpcomingSchedules()),
-        GetPage(name: '/previous-schedules', page: () => PreviousSchedules())
+        GetPage(name: '/previous-schedules', page: () => PreviousSchedules()),
+        GetPage(name: '/add-schedule', page: () => AddSchedule())
       ],
     );
   }

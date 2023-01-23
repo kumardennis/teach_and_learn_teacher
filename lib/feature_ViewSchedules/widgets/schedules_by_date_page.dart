@@ -13,6 +13,8 @@ import 'package:teach_and_learn_teacher/feature_ViewSchedules/models/schedule_de
 import 'package:teach_and_learn_teacher/feature_ViewSchedules/widgets/schedule_card.dart';
 import 'package:teach_and_learn_teacher/feature_ViewSchedules/widgets/schedule_card_header.dart';
 import 'package:teach_and_learn_teacher/feature_ViewSchedules/widgets/schedule_date_card.dart';
+import 'package:teach_and_learn_teacher/feature_ViewSchedules/widgets/schedule_group_sheet.dart';
+import 'package:teach_and_learn_teacher/feature_ViewSchedules/widgets/schedule_individual_sheet.dart';
 
 class SchedulesByDatePage extends HookWidget {
   final String date;
@@ -107,14 +109,37 @@ class SchedulesByDatePage extends HookWidget {
       return sum;
     }
 
-    Future<void> showBottomSheet(String scheduleId) async {
+    Future<dynamic> getScheduleDetails(String scheduleId) async {
+      final results = await Supabase.instance.client.functions
+          .invoke('proxy/get-teacher-schedule-details', headers: {
+        'Authorization': 'Bearer ${userController.user.value.accessToken}'
+      }, body: {
+        "scheduleId": scheduleId
+      });
+
+      return results;
+    }
+
+    Future<dynamic> updateLessonIsWaiting(
+      String lessonId,
+      String teacherId,
+      bool isAccepted,
+    ) async {
+      final results = await Supabase.instance.client.functions
+          .invoke('proxy/update-student-lesson-is-waiting', headers: {
+        'Authorization': 'Bearer ${userController.user.value.accessToken}'
+      }, body: {
+        "lessonId": lessonId,
+        "teacherId": teacherId,
+        "isAccepted": isAccepted
+      });
+
+      return results;
+    }
+
+    Future<void> showGroupBottomSheet(String scheduleId) async {
       try {
-        final results = await Supabase.instance.client.functions
-            .invoke('proxy/get-teacher-schedule-details', headers: {
-          'Authorization': 'Bearer ${userController.user.value.accessToken}'
-        }, body: {
-          "scheduleId": scheduleId
-        });
+        final results = await getScheduleDetails(scheduleId);
 
         final data = (results.data);
 
@@ -125,197 +150,89 @@ class SchedulesByDatePage extends HookWidget {
 
           ScheduleByDateModel scheduleDetails = schedulesList[0];
 
+          Future<void> acceptStudent(
+            String scheduleId,
+            String lessonId,
+            String teacherId,
+            bool isAccepted,
+          ) async {
+            await updateLessonIsWaiting(lessonId, teacherId, isAccepted);
+            await getSchedules(userController.user.value.id,
+                userController.user.value.accessToken, date);
+
+            Navigator.pop(context);
+
+            showGroupBottomSheet(scheduleId);
+          }
+
           showModalBottomSheet(
               context: context,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10.0),
               ),
               builder: (BuildContext context) {
-                return SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Column(
-                      children: [
-                        ScheduleCardHeader(schedule: scheduleDetails),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 10),
-                          child: Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Row(
-                                    children: [
-                                      FaIcon(
-                                        FontAwesomeIcons.personRunning,
-                                        color:
-                                            Theme.of(context).colorScheme.blue,
-                                        size: 24,
-                                      ),
-                                      const SizedBox(
-                                        width: 15,
-                                      ),
-                                      Text(
-                                          'hd_Attendees'.trParams({
-                                            'people':
-                                                getNumberOfPeopleAttending(
-                                                        scheduleDetails.Lessons)
-                                                    .toString()
-                                          }),
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleLarge
-                                              ?.copyWith(
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .gunmetal,
-                                                  fontWeight: FontWeight.bold))
-                                    ],
-                                  ),
-                                  Row(
-                                    children: [
-                                      FaIcon(
-                                        FontAwesomeIcons.personCircleMinus,
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .yellow,
-                                        size: 20,
-                                      ),
-                                      const SizedBox(
-                                        width: 10,
-                                      ),
-                                      Text(
-                                          'lbl_SpotsVacant'.trParams({
-                                            'spots': (scheduleDetails
-                                                        .maxOccupancy -
-                                                    getNumberOfPeopleAttending(
-                                                        scheduleDetails
-                                                            .Lessons))
-                                                .toString()
-                                          }),
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleSmall
-                                              ?.copyWith(
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .gunmetal,
-                                                  fontWeight: FontWeight.bold))
-                                    ],
-                                  )
-                                ],
-                              ),
-                              // ListView(),
-                            ],
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 20),
-                          child: Column(
-                            children: [
-                              Row(
-                                children: [
-                                  FaIcon(
-                                    FontAwesomeIcons.userClock,
-                                    color: Theme.of(context).colorScheme.yellow,
-                                    size: 22,
-                                  ),
-                                  const SizedBox(
-                                    width: 10,
-                                  ),
-                                  Text(
-                                      'hd_WaitingList'.trParams({
-                                        'people':
-                                            getNumberOfPeopleInWaitingList(
-                                                    scheduleDetails.Lessons)
-                                                .toString()
-                                      }),
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleLarge
-                                          ?.copyWith(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .gunmetal,
-                                              fontWeight: FontWeight.bold))
-                                ],
-                              ),
-                              Column(
-                                children: scheduleDetails.Lessons.map(
-                                    (lesson) => Padding(
-                                          padding:
-                                              const EdgeInsets.only(top: 10),
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .yellow,
-                                                borderRadius:
-                                                    const BorderRadius.all(
-                                                        Radius.circular(10))),
-                                            width: MediaQuery.of(context)
-                                                .size
-                                                .width,
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.all(8.0),
-                                              child: Column(
-                                                children: [
-                                                  Row(
-                                                    children: [
-                                                      Row(
-                                                        children: [
-                                                          CircleAvatar(
-                                                            radius: 30.0,
-                                                            backgroundImage:
-                                                                NetworkImage(lesson
-                                                                    .Students!
-                                                                    .profileImage!),
-                                                            backgroundColor:
-                                                                Theme.of(
-                                                                        context)
-                                                                    .colorScheme
-                                                                    .blue,
-                                                          ),
-                                                          const SizedBox(
-                                                            width: 10,
-                                                          ),
-                                                          Text(
-                                                            '${lesson.Students!.firstName} ${lesson.Students!.lastName}',
-                                                            style: Theme.of(
-                                                                    context)
-                                                                .textTheme
-                                                                .bodyMedium
-                                                                ?.copyWith(
-                                                                    color: Theme.of(
-                                                                            context)
-                                                                        .colorScheme
-                                                                        .gunmetal,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .bold),
-                                                          )
-                                                        ],
-                                                      )
-                                                    ],
-                                                  )
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        )).toList(),
-                              )
-                            ],
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
+                return ScheduleGroupSheet(
+                  scheduleDetails: scheduleDetails,
+                  getEstimatedMoney: getEstimatedMoney,
+                  getNumberOfBookedHours: getNumberOfBookedHours,
+                  getNumberOfBookedPeople: getNumberOfBookedPeople,
+                  getNumberOfPeopleAttending: getNumberOfPeopleAttending,
+                  acceptStudent: acceptStudent,
+                  getNumberOfPeopleInWaitingList:
+                      getNumberOfPeopleInWaitingList,
+                );
+              });
+        } else {
+          Get.snackbar('Oops..', results.data['error']);
+        }
+      } catch (error) {
+        print(error);
+      }
+    }
+
+    Future<void> showIndividualBottomSheet(String scheduleId) async {
+      try {
+        final results = await getScheduleDetails(scheduleId);
+
+        final data = (results.data);
+
+        if (results.data['isRequestSuccessful']) {
+          List<ScheduleByDateModel> schedulesList = (data['data'] as List)
+              .map((e) => ScheduleByDateModel.fromJson(e))
+              .toList();
+
+          ScheduleByDateModel scheduleDetails = schedulesList[0];
+
+          Future<void> acceptStudent(
+            String scheduleId,
+            String lessonId,
+            String teacherId,
+            bool isAccepted,
+          ) async {
+            await updateLessonIsWaiting(lessonId, teacherId, isAccepted);
+            await getSchedules(userController.user.value.id,
+                userController.user.value.accessToken, date);
+
+            Navigator.pop(context);
+
+            showIndividualBottomSheet(scheduleId);
+          }
+
+          showModalBottomSheet(
+              context: context,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              builder: (BuildContext context) {
+                return ScheduleIndividualSheet(
+                  scheduleDetails: scheduleDetails,
+                  getEstimatedMoney: getEstimatedMoney,
+                  getNumberOfBookedHours: getNumberOfBookedHours,
+                  getNumberOfBookedPeople: getNumberOfBookedPeople,
+                  getNumberOfPeopleAttending: getNumberOfPeopleAttending,
+                  acceptStudent: acceptStudent,
+                  getNumberOfPeopleInWaitingList:
+                      getNumberOfPeopleInWaitingList,
                 );
               });
         } else {
@@ -333,7 +250,9 @@ class SchedulesByDatePage extends HookWidget {
           children: schedules.value
               .map((schedule) => GestureDetector(
                     onTap: () {
-                      showBottomSheet(schedule.id);
+                      schedule.maxOccupancy != 1
+                          ? showGroupBottomSheet(schedule.id)
+                          : showIndividualBottomSheet(schedule.id);
                     },
                     child: ScheduleCard(
                       schedule: schedule,

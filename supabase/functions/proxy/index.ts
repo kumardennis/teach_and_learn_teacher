@@ -48,6 +48,21 @@ const handlers = {
 		'../update-user-confirm-email/handler.ts'
 	)
 		.then((it) => it.handler),
+
+	'update-student-lesson-is-waiting': await import(
+		'../update-student-lesson-is-waiting/handler.ts'
+	)
+		.then((it) => it.handler),
+
+	'get-teacher-addresses': await import(
+		'../get-teacher-addresses/handler.ts'
+	)
+		.then((it) => it.handler),
+
+	'create-teacher-address': await import(
+		'../create-teacher-address/handler.ts'
+	)
+		.then((it) => it.handler),
 } as Record<string, Handler>;
 
 function localdevHandler(req: Request, connInfo: ConnInfo) {

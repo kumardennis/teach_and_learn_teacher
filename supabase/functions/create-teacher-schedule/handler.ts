@@ -13,6 +13,7 @@ import { returnTimesInBetween } from '../_shared/returnTimesInBetween.ts';
 import { createSupabase } from '../_shared/supabaseClient.ts';
 import dayjs from 'https://cdn.skypack.dev/dayjs@1.11.6';
 import lodash from 'https://cdn.skypack.dev/lodash';
+import { corsHeaders } from '../_shared/cors.ts';
 
 console.log('Hello from get schedule Functions!');
 
@@ -46,7 +47,7 @@ export const handler = async (req: Request) => {
 			teacherId,
 			scheduleTimeStart,
 			scheduleTimeEnd,
-			scheduleDate,
+			scheduleDates,
 			maxOccupancy,
 			subcategoryId,
 			canBeSeenBy,
@@ -54,6 +55,7 @@ export const handler = async (req: Request) => {
 			lateCancellationPenalty,
 			levelFrom,
 			levelUpto,
+			addressIds,
 		} = await req.json();
 
 		if (
@@ -61,7 +63,7 @@ export const handler = async (req: Request) => {
 				teacherId,
 				scheduleTimeStart,
 				scheduleTimeEnd,
-				scheduleDate,
+				scheduleDates,
 				maxOccupancy,
 				subcategoryId,
 				canBeSeenBy,
@@ -69,60 +71,47 @@ export const handler = async (req: Request) => {
 				lateCancellationPenalty,
 				levelFrom,
 				levelUpto,
+				addressIds,
 			])
 		) {
 			return new Response(JSON.stringify(errorResponseData), {
-				headers: { 'Content-Type': 'application/json' },
+				headers: { ...corsHeaders, 'Content-Type': 'application/json' },
 			});
 		}
 
-		const teacherSubcategoryResponse = await supabase
-			.from('Teachers_Subcategories')
-			.select('feePerHour')
-			.eq('teacherId', teacherId);
+		const lessonSchedules: LessonScheduleCreateModel[] = [];
 
-		if (teacherSubcategoryResponse.error !== null) {
-			responseData.isRequestSuccessful = false;
-			responseData.data = teacherSubcategoryResponse.data;
-			responseData.error = teacherSubcategoryResponse.error;
+		scheduleDates.forEach((scheduleDate: string) => {
+			const schedule: LessonScheduleCreateModel = {
+				teacherId,
+				scheduleTimeStart,
+				scheduleTimeEnd,
+				scheduleDate,
+				maxOccupancy,
+				subcategoryId,
+				canBeSeenBy,
+				durationInMins: maxOccupancy === 1
+					? null
+					: returnDifferenceBetweenTimes(
+						scheduleTimeEnd,
+						scheduleTimeStart,
+					),
+				feeForTheLesson: feeForTheLesson,
+				feePerOccupant: null,
+				lateCancellationPenalty,
+				levelFrom,
+				levelUpto,
+				isRegularGroup: false,
+				groupId: null,
+				autoAddWaitingStudents: false,
+			};
 
-			return new Response(JSON.stringify(responseData), {
-				headers: { 'Content-Type': 'application/json' },
-			});
-		}
-
-		const teacherPerHourRate =
-			teacherSubcategoryResponse.data[0].feePerHour;
-
-		const schedule: LessonScheduleCreateModel = {
-			teacherId,
-			scheduleTimeStart,
-			scheduleTimeEnd,
-			scheduleDate,
-			maxOccupancy,
-			subcategoryId,
-			canBeSeenBy,
-			durationInMins: maxOccupancy === 1
-				? null
-				: returnDifferenceBetweenTimes(
-					scheduleTimeEnd,
-					scheduleTimeStart,
-				),
-			feeForTheLesson: maxOccupancy === 1
-				? teacherPerHourRate
-				: feeForTheLesson,
-			feePerOccupant: null,
-			lateCancellationPenalty,
-			levelFrom,
-			levelUpto,
-			isRegularGroup: false,
-			groupId: null,
-			autoAddWaitingStudents: false,
-		};
+			lessonSchedules.push(schedule);
+		});
 
 		const createTeacherScheduleResponse = await supabase
 			.from('LessonSchedules')
-			.insert(schedule)
+			.insert(lessonSchedules)
 			.select();
 
 		if (createTeacherScheduleResponse.error !== null) {
@@ -131,58 +120,131 @@ export const handler = async (req: Request) => {
 			responseData.error = createTeacherScheduleResponse.error;
 
 			return new Response(JSON.stringify(responseData), {
-				headers: { 'Content-Type': 'application/json' },
+				headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+			});
+		}
+
+		/* Create entry with addresses as well in Addresses_LessonSchedules */
+
+		try {
+			const addressId_scheduleId_data: {
+				addressId: string;
+				scheduleId: string;
+			}[] = [];
+
+			addressIds.forEach((addressId: string) =>
+				createTeacherScheduleResponse.data.forEach((response) => {
+					addressId_scheduleId_data.push({
+						addressId: addressId,
+						scheduleId: response.id,
+					});
+				})
+			);
+
+			const createAddressScheduleResponse = await supabase.from(
+				'Addresses_LessonSchedules',
+			).insert(addressId_scheduleId_data).select();
+
+			console.log(
+				createAddressScheduleResponse.data,
+				createAddressScheduleResponse.error,
+			);
+		} catch (err) {
+			responseData.isRequestSuccessful = false;
+			responseData.data = null;
+			responseData.error = err;
+
+			console.log(err);
+
+			return new Response(JSON.stringify(responseData), {
+				headers: { ...corsHeaders, 'Content-Type': 'application/json' },
 			});
 		}
 
 		/* Create times from the schedule as well */
-		if (maxOccupancy === 1) {
-			const listOfTimes = returnTimesInBetween(
-				scheduleTimeStart,
-				scheduleTimeEnd,
-			);
+		try {
+			if (maxOccupancy === 1) {
+				const listOfTimes = returnTimesInBetween(
+					scheduleTimeStart,
+					scheduleTimeEnd,
+				);
 
-			const insertableTimes = listOfTimes.map((time) => {
-				return {
-					scheduleId: createTeacherScheduleResponse.data[0].id,
-					time,
-					isBooked: false,
-				};
+				const insertableTimes: {
+					scheduleId: any;
+					time: string;
+					isBooked: boolean;
+				}[] = [];
+
+				listOfTimes.forEach((time) => {
+					createTeacherScheduleResponse.data.forEach(
+						(response) => {
+							insertableTimes.push({
+								scheduleId: response.id,
+								time,
+								isBooked: false,
+							});
+						},
+					);
+				});
+
+				console.log(insertableTimes);
+
+				const { error } = await supabase
+					.from('LessonScheduleTimes')
+					.insert(insertableTimes);
+
+				if (error !== null) {
+					responseData.isRequestSuccessful = false;
+					responseData.data = null;
+					responseData.error = error;
+
+					return new Response(JSON.stringify(responseData), {
+						headers: {
+							...corsHeaders,
+							'Content-Type': 'application/json',
+						},
+					});
+				}
+			} else {
+				const insertableTimes = createTeacherScheduleResponse.data.map(
+					(response) => {
+						return {
+							scheduleId: response.id,
+							time: scheduleTimeStart,
+							isBooked: false,
+						};
+					},
+				);
+
+				const { error } = await supabase
+					.from('LessonScheduleTimes')
+					.insert(insertableTimes);
+
+				if (error !== null) {
+					responseData.isRequestSuccessful = false;
+					responseData.data = null;
+					responseData.error = error;
+
+					return new Response(JSON.stringify(responseData), {
+						headers: {
+							...corsHeaders,
+							'Content-Type': 'application/json',
+						},
+					});
+				}
+			}
+		} catch (err) {
+			console.log(err);
+
+			responseData.isRequestSuccessful = false;
+			responseData.data = null;
+			responseData.error = err;
+
+			console.log(err);
+
+			return new Response(JSON.stringify(responseData), {
+				headers: { ...corsHeaders, 'Content-Type': 'application/json' },
 			});
-
-			const { error } = await supabase
-				.from('LessonScheduleTimes')
-				.insert(insertableTimes);
-
-			if (error !== null) {
-				responseData.isRequestSuccessful = false;
-				responseData.data = null;
-				responseData.error = error;
-
-				return new Response(JSON.stringify(responseData), {
-					headers: { 'Content-Type': 'application/json' },
-				});
-			}
-		} else {
-			const insertableTimes = {
-				scheduleId: createTeacherScheduleResponse.data[0].id,
-				time: scheduleTimeStart,
-				isBooked: false,
-			};
-
-			const { error } = await supabase
-				.from('LessonScheduleTimes')
-				.insert(insertableTimes);
-
-			if (error !== null) {
-				responseData.isRequestSuccessful = false;
-				responseData.data = null;
-				responseData.error = error;
-
-				return new Response(JSON.stringify(responseData), {
-					headers: { 'Content-Type': 'application/json' },
-				});
-			}
 		}
 
 		responseData.isRequestSuccessful = true;
@@ -190,7 +252,7 @@ export const handler = async (req: Request) => {
 		responseData.error = createTeacherScheduleResponse.error;
 
 		return new Response(JSON.stringify(responseData), {
-			headers: { 'Content-Type': 'application/json' },
+			headers: { ...corsHeaders, 'Content-Type': 'application/json' },
 		});
 	} catch (err) {
 		responseData.isRequestSuccessful = false;
@@ -198,7 +260,7 @@ export const handler = async (req: Request) => {
 		responseData.error = err;
 
 		return new Response(JSON.stringify(responseData), {
-			headers: { 'Content-Type': 'application/json' },
+			headers: { ...corsHeaders, 'Content-Type': 'application/json' },
 		});
 	}
 };

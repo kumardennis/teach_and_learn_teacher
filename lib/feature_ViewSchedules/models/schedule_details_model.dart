@@ -1,6 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:teach_and_learn_teacher/feature_ViewSchedules/models/lesson_model.dart';
 import 'package:teach_and_learn_teacher/feature_ViewSchedules/models/lesson_schedule_times_model.dart';
+import 'package:teach_and_learn_teacher/shared_models/subcategory_model.dart';
 
 part 'schedule_details_model.g.dart';
 
@@ -25,6 +26,7 @@ class ScheduleDetailsModel {
   final int levelUpto;
   final bool? autoAddWaitingStudents;
   final String scheduleTimeEnd;
+  final SubcategoryModel Subcategories;
   List<LessonScheduleTimesModel> LessonScheduleTimes;
   List<LessonModel> Lessons;
 
@@ -48,6 +50,7 @@ class ScheduleDetailsModel {
       this.levelUpto,
       this.autoAddWaitingStudents,
       this.scheduleTimeEnd,
+      this.Subcategories,
       this.LessonScheduleTimes,
       this.Lessons);
 

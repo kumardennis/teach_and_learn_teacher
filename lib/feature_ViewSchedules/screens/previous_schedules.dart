@@ -7,6 +7,7 @@ import 'package:teach_and_learn_teacher/feature_ViewSchedules/getxControllers/pr
 import 'package:teach_and_learn_teacher/feature_ViewSchedules/getxControllers/upcoming_schedules_controller.dart';
 import 'package:teach_and_learn_teacher/feature_ViewSchedules/widgets/schedule_date_card.dart';
 import 'package:teach_and_learn_teacher/feature_ViewSchedules/widgets/schedules_by_date_page.dart';
+import 'package:teach_and_learn_teacher/shared_widgets/DrawerMenu.dart';
 
 class PreviousSchedules extends HookWidget {
   @override
@@ -42,7 +43,6 @@ class PreviousSchedules extends HookWidget {
         preferredSize: const Size.fromHeight(60),
         child: AppBar(
           backgroundColor: Theme.of(context).colorScheme.blue,
-          automaticallyImplyLeading: false,
           actions: const [],
           flexibleSpace: FlexibleSpaceBar(
             title: Align(
@@ -59,12 +59,13 @@ class PreviousSchedules extends HookWidget {
                 ),
               ),
             ),
-            centerTitle: false,
+            centerTitle: true,
             expandedTitleScale: 1.0,
           ),
           elevation: 10,
         ),
       ),
+      drawer: DrawerMenu(),
     );
   }
 }

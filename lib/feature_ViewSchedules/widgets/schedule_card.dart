@@ -44,6 +44,7 @@ class ScheduleCard extends HookWidget {
                 height: 10,
               ),
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   schedule.maxOccupancy == 1
                       ? Column(
@@ -252,7 +253,17 @@ class ScheduleCard extends HookWidget {
                               ),
                             )
                           ],
-                        )
+                        ),
+                  Chip(
+                    label: Text(
+                      schedule.Subcategories.name,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.lineColor,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    backgroundColor: Theme.of(context).colorScheme.blue,
+                    elevation: 8,
+                  )
                 ],
               )
             ],

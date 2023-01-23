@@ -34,6 +34,7 @@ ScheduleByDateModel _$ScheduleByDateModelFromJson(Map<String, dynamic> json) =>
       (json['Lessons'] as List<dynamic>)
           .map((e) => LessonModel.fromJson(e as Map<String, dynamic>))
           .toList(),
+      SubcategoryModel.fromJson(json['Subcategories'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$ScheduleByDateModelToJson(
@@ -58,6 +59,7 @@ Map<String, dynamic> _$ScheduleByDateModelToJson(
       'levelUpto': instance.levelUpto,
       'autoAddWaitingStudents': instance.autoAddWaitingStudents,
       'scheduleTimeEnd': instance.scheduleTimeEnd,
+      'Subcategories': instance.Subcategories.toJson(),
       'LessonScheduleTimes':
           instance.LessonScheduleTimes.map((e) => e.toJson()).toList(),
       'Lessons': instance.Lessons.map((e) => e.toJson()).toList(),

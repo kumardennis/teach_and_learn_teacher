@@ -9,6 +9,7 @@ import 'package:teach_and_learn_teacher/feature_Auth/utils/money_formatter.dart'
 import 'package:teach_and_learn_teacher/feature_ViewSchedules/widgets/earnings_brief_card.dart';
 import 'package:teach_and_learn_teacher/feature_ViewSchedules/widgets/previous_schedule_brief.dart';
 import 'package:teach_and_learn_teacher/feature_ViewSchedules/widgets/upcoming_schedule_brief.dart';
+import 'package:teach_and_learn_teacher/shared_widgets/DrawerMenu.dart';
 
 class HomeScreen extends HookWidget {
   HomeScreen({Key? key}) : super(key: key);
@@ -28,7 +29,7 @@ class HomeScreen extends HookWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          print('FloatingActionButton pressed ...');
+          Get.toNamed('/add-schedule');
         },
         backgroundColor: Theme.of(context).colorScheme.blue,
         elevation: 8,
@@ -42,7 +43,6 @@ class HomeScreen extends HookWidget {
         preferredSize: const Size.fromHeight(60),
         child: AppBar(
           backgroundColor: Theme.of(context).colorScheme.blue,
-          automaticallyImplyLeading: false,
           actions: const [],
           flexibleSpace: FlexibleSpaceBar(
             title: Align(
@@ -60,12 +60,12 @@ class HomeScreen extends HookWidget {
                     )),
               ),
             ),
-            centerTitle: false,
-            expandedTitleScale: 1.0,
+            centerTitle: true,
           ),
           elevation: 10,
         ),
       ),
+      drawer: DrawerMenu(),
     );
   }
 }

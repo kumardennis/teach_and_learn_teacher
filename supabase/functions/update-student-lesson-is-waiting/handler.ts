@@ -10,7 +10,7 @@ import { corsHeaders } from '../_shared/cors.ts';
 import { ResponseModel } from '../_shared/ResponseModel.ts';
 import { createSupabase } from '../_shared/supabaseClient.ts';
 
-console.log('Hello from get schedule Functions!');
+console.log('Hello from update lesson is waiting Functions!');
 
 export const handler = async (req: Request) => {
 	const supabase = createSupabase(req);
@@ -18,12 +18,16 @@ export const handler = async (req: Request) => {
 
 	try {
 		const {
-			scheduleId,
+			lessonId,
+			teacherId,
+			isAccepted,
 		} = await req.json();
 
 		if (
 			!confirmedRequiredParams([
-				scheduleId,
+				lessonId,
+				teacherId,
+				isAccepted,
 			])
 		) {
 			return new Response(JSON.stringify(errorResponseData), {
@@ -31,23 +35,12 @@ export const handler = async (req: Request) => {
 			});
 		}
 
-		const addressQueryString =
-			'Addresses(line1, line2, city, stateCountyProvince, zipCode, countryName, countryCode, geoPoint, name, id, otherDetails)';
-		const studentQueryString =
-			'Students(id, firstName, lastName, profileImage)';
-
-		const lessonScheduleTimeQueryString =
-			'LessonScheduleTimes(scheduleId, time, isBooked, id)';
-
-		const lessonQueryString =
-			`Lessons(Lessons_LessonScheduleTimes(${lessonScheduleTimeQueryString}), ${studentQueryString}, ${addressQueryString}, id, fee, studentComment, teacherComment, studentRating, teacherRating, studentSkillLevelRating, hasLessonEnded, hasLessonEndedEarly, hasLessonStarted, isInWaitingList, isAccepted, isChild)`;
-
-		const { data, error } = await supabase.from('LessonSchedules').select(
-			`*, Subcategories(id, name, description, picture, categoryId) ,${lessonScheduleTimeQueryString}, ${lessonQueryString}`,
-		).eq('id', scheduleId).eq('Lessons.scheduleId', scheduleId).eq(
-			'LessonScheduleTimes.scheduleId',
-			scheduleId,
-		);
+		const { data, error } = await supabase.from('Lessons').update(
+			{ isAccepted },
+		).match({
+			id: lessonId,
+			teacherId,
+		});
 
 		responseData.isRequestSuccessful = error === null;
 		responseData.data = data;

@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:teach_and_learn_teacher/feature_ViewSchedules/models/address_model.dart';
 import 'package:teach_and_learn_teacher/feature_ViewSchedules/models/lessons_lesson_schedule_time_model.dart';
+import 'package:teach_and_learn_teacher/shared_models/address_model.dart';
 
 import 'lesson_student_model.dart';
 

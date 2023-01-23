@@ -45,7 +45,7 @@ export const handler = async (req: Request) => {
 		const { data, error } = await supabase
 			.from('LessonSchedules')
 			.select(
-				`*,${lessonScheduleTimeQueryString}, ${lessonQueryString}`,
+				`*, Subcategories(id, name, description, picture, categoryId),${lessonScheduleTimeQueryString}, ${lessonQueryString}`,
 			)
 			.eq('teacherId', teacherId)
 			.eq('scheduleDate', date)
