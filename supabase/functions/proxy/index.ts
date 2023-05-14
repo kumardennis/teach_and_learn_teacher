@@ -39,6 +39,11 @@ const handlers = {
 	)
 		.then((it) => it.handler),
 
+	'get-student-schedule-details': await import(
+		'../get-student-schedule-details/handler.ts'
+	)
+		.then((it) => it.handler),
+
 	'create-user-student': await import(
 		'../create-user-student/handler.ts'
 	)
@@ -59,8 +64,37 @@ const handlers = {
 	)
 		.then((it) => it.handler),
 
+	'get-teacher-subcategories': await import(
+		'../get-teacher-subcategories/handler.ts'
+	)
+		.then((it) => it.handler),
+
 	'create-teacher-address': await import(
 		'../create-teacher-address/handler.ts'
+	)
+		.then((it) => it.handler),
+
+	'get-student-lessons-grouped-date': await import(
+		'../get-student-lessons-grouped-date/handler.ts'
+	)
+		.then((it) => it.handler),
+	'get-student-lessons-by-date': await import(
+		'../get-student-lessons-by-date/handler.ts'
+	)
+		.then((it) => it.handler),
+
+	'get-all-teachers-schedules': await import(
+		'../get-all-teachers-schedules/handler.ts'
+	)
+		.then((it) => it.handler),
+
+	'create-user-teacher': await import(
+		'../create-user-teacher/handler.ts'
+	)
+		.then((it) => it.handler),
+
+	'create-teacher-subcategory': await import(
+		'../create-teacher-subcategory/handler.ts'
 	)
 		.then((it) => it.handler),
 } as Record<string, Handler>;

@@ -17,13 +17,20 @@ import { createSupabase } from '../_shared/supabaseClient.ts';
 
 console.log('Hello from Create user teacher Functions!');
 
-interface CreateUserStudentResponseModel {
+interface CreateUserTeacherResponseModel {
 	isRequestSuccessful: boolean;
-	error: any;
+	error:
+		| AuthError
+		| null
+		| string
+		| {
+			createdTeacherUserError: AuthError | null;
+			createdTeacherRecordError: any;
+		};
 	data:
 		| {
-			createdStudentUserData: { user: User };
-			createdStudentRecordData: any[] | null;
+			createdTeacherUserData: { user: User | null };
+			createdTeacherRecordData: any[] | null;
 		}
 		| { user: User | null }
 		| null;
@@ -57,10 +64,10 @@ export const handler = async (req: Request) => {
 		});
 
 		if (error !== null) {
-			const responseData: CreateUserStudentResponseModel = {
+			const responseData: CreateUserTeacherResponseModel = {
 				isRequestSuccessful: false,
 				data: data,
-				error: error,
+				error: error as unknown as AuthError,
 			};
 
 			return new Response(JSON.stringify(responseData), {
@@ -68,8 +75,8 @@ export const handler = async (req: Request) => {
 			});
 		}
 
-		const createdStudentRecord = await supabase
-			.from('Students')
+		const createdTeacherRecord = await supabase
+			.from('Teachers')
 			.insert({
 				firstName,
 				lastName,
@@ -77,14 +84,14 @@ export const handler = async (req: Request) => {
 			})
 			.select();
 
-		const createdStudentRecordData = createdStudentRecord.data;
+		const createdTeacherRecordData = createdTeacherRecord.data;
 
-		const responseData: CreateUserStudentResponseModel = {
+		const responseData: CreateUserTeacherResponseModel = {
 			isRequestSuccessful: true,
-			data: { createdStudentUserData: data, createdStudentRecordData },
+			data: { createdTeacherUserData: data, createdTeacherRecordData },
 			error: {
-				createdStudentUserError: error,
-				createdStudentRecordError: createdStudentRecord.error,
+				createdTeacherUserError: error,
+				createdTeacherRecordError: createdTeacherRecord.error,
 			},
 		};
 
@@ -92,7 +99,7 @@ export const handler = async (req: Request) => {
 			headers: { ...corsHeaders, 'Content-Type': 'application/json' },
 		});
 	} catch (err) {
-		const responseData: CreateUserStudentResponseModel = {
+		const responseData: CreateUserTeacherResponseModel = {
 			isRequestSuccessful: false,
 			data: null,
 			error: err,

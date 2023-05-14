@@ -10,8 +10,12 @@ import {
 import { ResponseModel } from '../_shared/ResponseModel.ts';
 import { createSupabase } from '../_shared/supabaseClient.ts';
 import dayjs from 'https://cdn.skypack.dev/dayjs@1.11.6';
+import lodash from 'https://cdn.skypack.dev/lodash';
+import { corsHeaders } from '../_shared/cors.ts';
 import { handler } from './handler.ts';
 
 console.log('Hello from get schedule Functions!');
+
+const _ = lodash;
 
 serve(handler);

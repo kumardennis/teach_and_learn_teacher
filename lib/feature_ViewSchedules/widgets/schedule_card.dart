@@ -28,9 +28,19 @@ class ScheduleCard extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isScheduleToday =
+        DateTime.now().compareTo(DateTime.parse(schedule.scheduleDate)) == 0;
+
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: Card(
+        shadowColor: isScheduleToday
+            ? DateTime.now().compareTo(DateTime.parse(
+                        '${schedule.scheduleDate} ${schedule.scheduleTimeStart}')) <
+                    0
+                ? Theme.of(context).colorScheme.green
+                : Theme.of(context).colorScheme.brightRed
+            : Colors.black38,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),

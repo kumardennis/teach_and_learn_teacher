@@ -15,6 +15,7 @@ import 'package:teach_and_learn_teacher/constants.dart';
 import 'package:teach_and_learn_teacher/feature_Auth/getx_controllers/user_controller.dart';
 import 'package:teach_and_learn_teacher/feature_ViewSchedules/getxControllers/upcoming_schedules_controller.dart';
 import 'package:teach_and_learn_teacher/shared_models/address_response_model.dart';
+import 'package:teach_and_learn_teacher/shared_models/subcategory_response_model.dart';
 import 'package:time_range_picker/time_range_picker.dart';
 
 extension TimeOfDayConverter on TimeOfDay {
@@ -45,6 +46,10 @@ class AddIndividualSchedule extends HookWidget {
     final selectedAddresses = useState([]);
 
     final ValueNotifier<List<AddressResponseModel>> addresses = useState([]);
+    final ValueNotifier<List<SubcategoryResponseModel>> subcategories =
+        useState([]);
+
+    final ValueNotifier<String> subcategory = useState('');
 
     final ValueNotifier<List<DateTime>> specialExistingDate = useState([]);
 
@@ -86,26 +91,26 @@ class AddIndividualSchedule extends HookWidget {
                 '${DateFormat('yyyy-MM-dd').format(DateTime.now())} ${selectedTimeRange.value.endTime.to24hours().toString()}');
 
             /* existingTimeStart is in between selectedTimes */
-            if (existingDateStartTime.compareTo(selectedDateEndTime) < 0 &&
-                existingDateStartTime.compareTo(selectedDateStartTime) > 0) {
+            if (existingDateStartTime.compareTo(selectedDateEndTime) <= 0 &&
+                existingDateStartTime.compareTo(selectedDateStartTime) >= 0) {
               isHinderanceToExistingTimes = true;
             }
 
             /* existingTimeEnd is in between selectedTimes */
-            if (existingDateEndTime.compareTo(selectedDateEndTime) < 0 &&
-                existingDateEndTime.compareTo(selectedDateStartTime) > 0) {
+            if (existingDateEndTime.compareTo(selectedDateEndTime) <= 0 &&
+                existingDateEndTime.compareTo(selectedDateStartTime) >= 0) {
               isHinderanceToExistingTimes = true;
             }
 
             /* selectedTimeStart is in between existingTimes */
-            if (selectedDateStartTime.compareTo(existingDateEndTime) < 0 &&
-                selectedDateStartTime.compareTo(existingDateStartTime) > 0) {
+            if (selectedDateStartTime.compareTo(existingDateEndTime) <= 0 &&
+                selectedDateStartTime.compareTo(existingDateStartTime) >= 0) {
               isHinderanceToExistingTimes = true;
             }
 
             /* selectedTimeEnd is in between existingTimes */
-            if (selectedDateEndTime.compareTo(existingDateStartTime) < 0 &&
-                selectedDateEndTime.compareTo(existingDateEndTime) > 0) {
+            if (selectedDateEndTime.compareTo(existingDateStartTime) <= 0 &&
+                selectedDateEndTime.compareTo(existingDateEndTime) >= 0) {
               isHinderanceToExistingTimes = true;
             }
 
@@ -142,8 +147,8 @@ class AddIndividualSchedule extends HookWidget {
               .map((e) => DateFormat('yyyy-MM-dd').format(e))
               .toList(),
           "maxOccupancy": 1,
-          "subcategoryId": "e32ceb8b-dd31-40ae-bcbc-6eddb439946d",
-          "canBeSeenBy": "ONLY_SUBCATEGORY_PEOPLE",
+          "subcategoryId": subcategory.value,
+          "canBeSeenBy": canBeSeenBy.value,
           "feeForTheLesson": feeController.text,
           "lateCancellationPenalty": 10,
           "levelFrom": currentLevelRange.value.start,
@@ -171,7 +176,7 @@ class AddIndividualSchedule extends HookWidget {
 
           Get.toNamed('/home-screen');
         } else {
-          Get.snackbar('Oops..', data['error']);
+          Get.snackbar('Oops..', data['error'].toString());
         }
       } catch (err) {
         debugPrint(err.toString());
@@ -201,9 +206,36 @@ class AddIndividualSchedule extends HookWidget {
       }
     }
 
+    Future<void> getTeacherSubcategories(teacherId, accessToken) async {
+      try {
+        final response = await Supabase.instance.client.functions.invoke(
+            'proxy/get-teacher-subcategories',
+            headers: {'Authorization': 'Bearer $accessToken'},
+            body: {"teacherId": teacherId, "isInPast": false});
+
+        final data = response.data;
+
+        if (data['isRequestSuccessful']) {
+          List<SubcategoryResponseModel> subcategoryList =
+              (data['data'] as List)
+                  .map((e) => SubcategoryResponseModel.fromJson(e))
+                  .toList();
+
+          subcategories.value = subcategoryList;
+        } else {
+          Get.snackbar('Oops..', data['error']);
+        }
+      } catch (err) {
+        debugPrint(err.toString());
+      }
+    }
+
     useEffect(() {
       if (userController.user.value.accessToken != '') {
         getTeacherAddresses(userController.user.value.id,
+            userController.user.value.accessToken);
+
+        getTeacherSubcategories(userController.user.value.id,
             userController.user.value.accessToken);
       }
       return null;
@@ -481,6 +513,30 @@ class AddIndividualSchedule extends HookWidget {
                           selected: canBeSeenBy.value == e.id,
                           onSelected: (bool selected) {
                             canBeSeenBy.value = e.id;
+                          },
+                        ))
+                    .toList(),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Wrap(
+                spacing: 0.5,
+                runSpacing: 0.5,
+                children: subcategories.value
+                    .map((e) => ChoiceChip(
+                          elevation: 8,
+                          selectedColor: Theme.of(context).colorScheme.blue,
+                          label: Text(
+                            e.Subcategories.name,
+                            style: TextStyle(
+                                color: subcategory.value == e.Subcategories.id
+                                    ? Theme.of(context).colorScheme.snow
+                                    : Theme.of(context).colorScheme.gunmetal),
+                          ),
+                          selected: subcategory.value == e.Subcategories.id,
+                          onSelected: (bool selected) {
+                            subcategory.value = e.Subcategories.id;
                           },
                         ))
                     .toList(),
