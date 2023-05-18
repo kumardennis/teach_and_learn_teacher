@@ -15,5 +15,5 @@ SubcategoryResponseModel _$SubcategoryResponseModelFromJson(
 Map<String, dynamic> _$SubcategoryResponseModelToJson(
         SubcategoryResponseModel instance) =>
     <String, dynamic>{
-      'Subcateogories': instance.Subcategories.toJson(),
+      'Subcategories': instance.Subcategories.toJson(),
     };
