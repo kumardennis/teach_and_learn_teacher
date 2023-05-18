@@ -6,6 +6,7 @@ import {
 	confirmedRequiredParams,
 	errorResponseData,
 } from '../_shared/confirmedRequiredParams.ts';
+import { corsHeaders } from '../_shared/cors.ts';
 import { ResponseModel } from '../_shared/ResponseModel.ts';
 import { createSupabase } from '../_shared/supabaseClient.ts';
 
@@ -37,7 +38,7 @@ export const handler = async (req: Request) => {
 			])
 		) {
 			return new Response(JSON.stringify(errorResponseData), {
-				headers: { 'Content-Type': 'application/json' },
+				headers: { ...corsHeaders, 'Content-Type': 'application/json' },
 			});
 		}
 
@@ -58,7 +59,7 @@ export const handler = async (req: Request) => {
 			responseData.error = createNewLessonError;
 
 			return new Response(JSON.stringify(responseData), {
-				headers: { 'Content-Type': 'application/json' },
+				headers: { ...corsHeaders, 'Content-Type': 'application/json' },
 			});
 		}
 
@@ -75,7 +76,7 @@ export const handler = async (req: Request) => {
 		}
 
 		return new Response(JSON.stringify(responseData), {
-			headers: { 'Content-Type': 'application/json' },
+			headers: { ...corsHeaders, 'Content-Type': 'application/json' },
 		});
 	} catch (err) {
 		responseData.isRequestSuccessful = false;
@@ -83,7 +84,7 @@ export const handler = async (req: Request) => {
 		responseData.error = err;
 
 		return new Response(JSON.stringify(responseData), {
-			headers: { 'Content-Type': 'application/json' },
+			headers: { ...corsHeaders, 'Content-Type': 'application/json' },
 		});
 	}
 };

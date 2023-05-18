@@ -1,4 +1,4 @@
-import 'package:badges/badges.dart';
+import 'package:badges/badges.dart' as badges;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:teach_and_learn_teacher/color_scheme.dart';
@@ -15,7 +15,7 @@ Widget DateBriefCircle(BuildContext context, String dateString, int badgeCount,
         color: Theme.of(context).colorScheme.snow,
         shape: BoxShape.circle,
       ),
-      child: Badge(
+      child: badges.Badge(
         badgeContent: Text(
           badgeCount.toString(),
           style: Theme.of(context).textTheme.bodyText1?.copyWith(
@@ -23,15 +23,14 @@ Widget DateBriefCircle(BuildContext context, String dateString, int badgeCount,
               ),
         ),
         showBadge: true,
-        shape: BadgeShape.circle,
-        badgeColor: isInPast!
-            ? Theme.of(context).colorScheme.brightRed
-            : Theme.of(context).colorScheme.green,
-        elevation: 4,
-        padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
-        position: BadgePosition.topEnd(),
-        animationType: BadgeAnimationType.scale,
-        toAnimate: true,
+        badgeStyle: badges.BadgeStyle(
+          shape: badges.BadgeShape.circle,
+          badgeColor: isInPast
+              ? Theme.of(context).colorScheme.brightRed
+              : Theme.of(context).colorScheme.green,
+          elevation: 4,
+          padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
+        ),
         child: Container(
           width: 70,
           height: 70,

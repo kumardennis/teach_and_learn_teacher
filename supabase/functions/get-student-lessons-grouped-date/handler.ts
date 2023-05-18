@@ -48,6 +48,8 @@ export const handler = async (req: Request) => {
 			? await query.lt('LessonSchedules.scheduleDate', todaysDate)
 			: await query.gte('LessonSchedules.scheduleDate', todaysDate);
 
+		console.log(data);
+
 		if (data !== null) {
 			const groupedDate = _.groupBy(
 				data,
